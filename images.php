@@ -68,7 +68,7 @@ if(!class_exists('ICIT_Feed_Images')){
 								$content = str_replace($image['src'],$i->getURL(),$content);
 							}
 						} else {
-							error_log('invalid?'.print_r($i->error,true));
+							//error_log('invalid?'.print_r($i->error,true));
 
 							return $i->error;
 						}

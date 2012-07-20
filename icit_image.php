@@ -117,6 +117,8 @@ if(!class_exists('ICIT_Image')){
 
 				// Download file to temp location
 				//$file = urlencode($file);
+//				$file = rawurlencode ($file);
+				$file = str_replace(' ', '%20', $file);
 				$tmp = download_url( $file );
 				// If error storing temporarily, unlink
 				if ( is_wp_error( $tmp ) ) {
