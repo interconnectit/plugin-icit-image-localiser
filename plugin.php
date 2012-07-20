@@ -121,7 +121,7 @@ class ICIT_ImageLocaliser {
 //
 		$sql = "select * from $wpdb->posts q where q.post_type = 'post' AND q.ID NOT in
 		 (SELECT p.ID FROM $wpdb->posts p join $wpdb->postmeta a on (a.post_id = p.ID) where a.meta_key = '".$m."' AND a.meta_value > 0 )
-		  order by q.timestamp DESC LIMIT 15";
+		  order by q.post_date DESC LIMIT 15";
 		$myposts= $wpdb->get_results($sql);
 		$excludes = array();
 		if(!empty($myposts)){
