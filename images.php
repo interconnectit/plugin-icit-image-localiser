@@ -56,20 +56,21 @@ if(!class_exists('ICIT_Feed_Images')){
 					
 						$i = new ICIT_Image($image['src'],$post_id);
 						if($i->is_valid()){
-							if($first == 0){
-								if($_POST['action'] =='localise_featured_batch'){
+							if($_POST['action'] =='localise_featured_batch'){
+								if($first == 0){
+								
 	//								error_log('first: '.print_r($image,true));
 									$this->set_featured_image($post_id,$i->ID);
 									$content = str_replace($image['tag'],'',$content);
 									return $content;
 								}
-							}
-							if($_POST['action'] !='localise_featured_batch'){
+							} else {
 								$content = str_replace($image['src'],$i->getURL(),$content);
 							}
 						} else {
-							//error_log('invalid?'.print_r($i->error,true));
-							return false;
+							error_log('invalid?'.print_r($i->error,true));
+
+							return $i->error;
 						}
 					//}
 					$first++;

@@ -90,9 +90,9 @@ class ICIT_ImageLocaliser {
 		global $icit_feed_images;
 		//error_log(print_r($p,true));
 		$ret = $icit_feed_images->sideload_remote_images($p);
-		if($ret === false){
+		if(($ret == false)|| is_wp_error($ret) ){
 //			error_log(print_r($p,true).'###');
-			echo '<p class="failed_localisation">Failed to get some images for <a href="'.get_permalink($p->ID).'">'.$p->post_title.' ( '.$p->ID.' )</a></p>';
+			echo '<p class="failed_localisation">Failed to get some images for <a href="'.get_permalink($p->ID).'">'.$p->post_title.' ( '.$p->ID.' )</a>, message given was: '.implode(', ', $ret->get_error_messages()).'</p>';
 //			echo '<p>Aborting process</p>';
 //			die();
 			if(!update_post_meta($p->ID,$m,1)){

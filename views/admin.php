@@ -3,6 +3,8 @@
 
 	<?php /*<input type="hidden" name="page" value="ICIT_ImageLocaliser" />
 	<input type="hidden" name="start_localise_script" value="1" />*/ ?>
+
+	<p><input style="width:400px;" disabled type="text" id="from_date" placeholder="A mysql timestamp,  only process after this date" value="" /></p>
 	<input id="do_localiser_script" type="submit" value="Localise Images">
 	<input id="do_localiser_bad_script" type="submit" value="Relocalise posts marked as failed">
 	<input id="do_localiser_featured_script" type="submit" value="Setup featured images">

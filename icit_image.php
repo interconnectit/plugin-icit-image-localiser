@@ -34,6 +34,7 @@ if(!class_exists('ICIT_Image')){
 	class ICIT_Image {
 
 		public $ID = 0;
+		public $error = false;
 
 		public function __construct($image_id=0,$parent=0){
 			if(is_numeric($image_id)){
@@ -117,6 +118,17 @@ if(!class_exists('ICIT_Image')){
 				// Download file to temp location
 				//$file = urlencode($file);
 				$tmp = download_url( $file );
+				// If error storing temporarily, unlink
+				if ( is_wp_error( $tmp ) ) {
+
+					$tmp->add(8788,'Issue with image at: '.$file.' originally '.$original_file, array($file,$original_file));
+					
+					$this->error = $tmp;
+					
+					@unlink($file_array['tmp_name']);
+					$file_array['tmp_name'] = '';
+					return 0;
+				}
 
 				// fix file filename
 				$file = preg_replace( array( '/[^a-zA-Z0-9\.-_]/', '/_+/' ), '_', $file );
@@ -128,22 +140,15 @@ if(!class_exists('ICIT_Image')){
 				}
 				$file_array['tmp_name'] = $tmp;
 
-				// If error storing temporarily, unlink
-				if ( is_wp_error( $tmp ) ) {
-					
-					$this->error = $tmp->get_error_messages();
-					
-					@unlink($file_array['tmp_name']);
-					$file_array['tmp_name'] = '';
-					return 0;
-				}
+				
 
 				// do the validation and storage stuff
 				$id = media_handle_sideload( $file_array, $post_id, $desc );
 				// If error storing permanently, unlink
 				if ( is_wp_error($id) ) {
 					$this->ID = 0;
-					$this->error = $id->get_error_messages();
+					$id->add(8789,'Issue with image at: '.$file.' originally '.$original_file, array($file,$original_file));
+					$this->error = $id;
 
 					@unlink($file_array['tmp_name']);
 					return $id;

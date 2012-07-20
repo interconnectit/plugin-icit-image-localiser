@@ -3,3 +3,8 @@
 #localise_results {
 	display:none;
 }
+
+.failed_localisation {
+	font-style: italic;
+	color:red;
+}
