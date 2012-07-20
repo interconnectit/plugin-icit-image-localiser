@@ -115,6 +115,7 @@ if(!class_exists('ICIT_Image')){
 				require_once(ABSPATH . 'wp-admin/includes/image.php');
 
 				// Download file to temp location
+				//$file = urlencode($file);
 				$tmp = download_url( $file );
 
 				// fix file filename

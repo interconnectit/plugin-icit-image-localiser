@@ -61,6 +61,9 @@ class ICIT_ImageLocaliser {
 		register_deactivation_hook( __FILE__, array( &$this, 'deactivate' ) );
 
 		add_action('wp_ajax_localise_batch', array(&$this,'localise_batch_callback'));
+		add_action('wp_ajax_localise_bad_batch', array(&$this,'localise_bad_batch_callback'));
+
+		add_action('wp_ajax_localise_featured_batch', array(&$this,'localise_featured_batch_callback'));
 		
 	    /*
 	     * TODO:
@@ -79,17 +82,22 @@ class ICIT_ImageLocaliser {
 	} // end constructor
 
 	function localise_ajax_single_post($p){
+
+		$m = $this->donemeta;
+		if($_POST['action'] =='localise_featured_batch'){
+			$m.= '_f';
+		}
 		global $icit_feed_images;
 		//error_log(print_r($p,true));
 		$ret = $icit_feed_images->sideload_remote_images($p);
 		if($ret === false){
 //			error_log(print_r($p,true).'###');
-			echo '<p>Failed to get some images for <a href="'.get_permalink($p->ID).'">'.$p->post_title.' ( '.$p->ID.' )</a></p>';
-			echo '<p>Aborting process</p>';
-			die();
-/*			if(!update_post_meta($p->ID,$this->donemeta,1)){
-				add_post_meta($p->ID, $this->donemeta, 1, true);
-			}*/
+			echo '<p class="failed_localisation">Failed to get some images for <a href="'.get_permalink($p->ID).'">'.$p->post_title.' ( '.$p->ID.' )</a></p>';
+//			echo '<p>Aborting process</p>';
+//			die();
+			if(!update_post_meta($p->ID,$m,1)){
+				add_post_meta($p->ID, $m, 1, true);
+			}
 		} else {
 			
 			$post_data = array();
@@ -97,14 +105,14 @@ class ICIT_ImageLocaliser {
 			$post_data['post_content'] = $ret;
 			$success = wp_update_post($post_data);
 			if($success != 0){
-				if(!update_post_meta($p->ID,$this->donemeta,4)){
-					add_post_meta($p->ID, $this->donemeta, 4, true);
+				if(!update_post_meta($p->ID,$m,4)){
+					add_post_meta($p->ID, $m, 4, true);
 				}
 				echo '<p>Localised <a href="'.get_permalink($p->ID).'">'.$p->post_title.'</a></p>';
 			} else {
 				echo '<p>Acquired remote images for <a href="'.get_permalink($p->ID).'">'.$p->post_title.'</a> but updating the post content failed</p>';
-				if(!update_post_meta($p->ID,$this->donemeta,3)){
-					add_post_meta($p->ID, $this->donemeta, 3, true);
+				if(!update_post_meta($p->ID,$m,3)){
+					add_post_meta($p->ID, $m, 3, true);
 				}
 			}
 		}
@@ -137,19 +145,52 @@ class ICIT_ImageLocaliser {
 		}
 		die();
 
-/*		$args = array('post_type' => 'any', 'post__not_in' => $excludes );
+	}
+
+	function localise_bad_batch_callback() {
+
+		global $post, $icit_feed_images,$wpdb;
+
+		$m = $this->donemeta;
+
+		$args = array('post_type' => 'any', 'meta_key' => $this->donemeta,'meta_value' => 1 );
 		$q = new WP_Query($args);
 		if($q->have_posts()){
 			while($q->have_posts()){
 				$q->the_post();
 				$this->localise_ajax_single_post($post);
 			}
-			echo '<p>--</p>';
+			echo '<p>Batch complete</p>';
 		} else {
 			echo '<p>no more posts</p>';
 		}
 		die(); // this is required to return a proper result
-		*/
+		
+	}
+
+	public function localise_featured_batch_callback(){
+		global $post, $icit_feed_images,$wpdb;
+
+		$m = $this->donemeta.'_f';
+
+//
+		$sql = "select * from $wpdb->posts q where q.post_type = 'post' AND q.ID NOT in
+		 (SELECT p.ID FROM $wpdb->posts p join $wpdb->postmeta a on (a.post_id = p.ID) where a.meta_key = '".$m."' AND a.meta_value > 0 )
+		  order by q.post_date DESC LIMIT 15";
+		$myposts= $wpdb->get_results($sql);
+		$excludes = array();
+		if(!empty($myposts)){
+			foreach($myposts as $p){
+//				$excludes[] = $p->ID;
+				$this->localise_ajax_single_post($p);
+			}
+//			error_log(print_r($excludes,true));
+			echo '<p>Batch complete</p>';
+		} else {
+//			error_log('nothing?');
+			echo '<p>no more posts</p>';
+		}
+		die();
 	}
 	
 	/**

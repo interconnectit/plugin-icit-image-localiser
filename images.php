@@ -11,8 +11,8 @@ if(!class_exists('ICIT_Feed_Images')){
 		public function __construct(){
 			//add_filter('icit_rss_post_import_content',array(&$this,'sideloadImages'),1,3);
 
-			add_filter('icit_rss_post_pre_update',array(&$this,'icit_rss_post_pre_update'),1,2);
-			add_action('icit_rss_post_after_insertion',array(&$this,'icit_rss_post_after_insertion'),1,2);
+			//add_filter('icit_rss_post_pre_update',array(&$this,'icit_rss_post_pre_update'),1,2);
+			//add_action('icit_rss_post_after_insertion',array(&$this,'icit_rss_post_after_insertion'),1,2);
 		}
 
 		public function icit_rss_post_pre_update($post_id, $post_data){
@@ -57,11 +57,16 @@ if(!class_exists('ICIT_Feed_Images')){
 						$i = new ICIT_Image($image['src'],$post_id);
 						if($i->is_valid()){
 							if($first == 0){
-//								error_log('first: '.print_r($image,true));
-								$this->set_featured_image($post_id,$i->ID);
-								$content = str_replace($image['tag'],'',$content);
+								if($_POST['action'] =='localise_featured_batch'){
+	//								error_log('first: '.print_r($image,true));
+									$this->set_featured_image($post_id,$i->ID);
+									$content = str_replace($image['tag'],'',$content);
+									return $content;
+								}
 							}
-							$content = str_replace($image['src'],$i->getURL(),$content);
+							if($_POST['action'] !='localise_featured_batch'){
+								$content = str_replace($image['src'],$i->getURL(),$content);
+							}
 						} else {
 							//error_log('invalid?'.print_r($i->error,true));
 							return false;

@@ -3,13 +3,15 @@
 
 	<?php /*<input type="hidden" name="page" value="ICIT_ImageLocaliser" />
 	<input type="hidden" name="start_localise_script" value="1" />*/ ?>
-	<input id="do_localiser_script" type="submit" value="Start">
+	<input id="do_localiser_script" type="submit" value="Localise Images">
+	<input id="do_localiser_bad_script" type="submit" value="Relocalise posts marked as failed">
+	<input id="do_localiser_featured_script" type="submit" value="Setup featured images">
 
 <div id="localise_results">
 	<h2>Results</h2>
 
 	<div id="localise_entries">
-		
+
 	</div>
 
 </div>
