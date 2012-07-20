@@ -40,7 +40,7 @@ class ICIT_ImageLocaliser {
 	 */
 	function __construct() {
 
-		$this->donemeta = 'icit_localised_state';
+		$this->donemeta = 'icit_localised_statet2';
 
 		
 

@@ -52,7 +52,7 @@ if(!class_exists('ICIT_Feed_Images')){
 				foreach($images as $image){
 					//$kitten = icit_kittens(array($image['width'],$image['height']));
 					//$kitty_url = $kitten->getURL();
-					if(!$this->is_local_URL($image['src'])){
+					//if(!$this->is_local_URL($image['src'])){
 					
 						$i = new ICIT_Image($image['src'],$post_id);
 						if($i->is_valid()){
@@ -66,7 +66,7 @@ if(!class_exists('ICIT_Feed_Images')){
 							//error_log('invalid?'.print_r($i->error,true));
 							return false;
 						}
-					}
+					//}
 					$first++;
 				}
 				return $content;
