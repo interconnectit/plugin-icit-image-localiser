@@ -39,13 +39,14 @@ if(!class_exists('ICIT_Image')){
 			if(is_numeric($image_id)){
 				// we have an attachment ID! fill in all the gaps and be thankful
 				// no heavy lifting is required
+//				error_log('NUMERICS!!!');
 			} else if(is_string($image_id)){
 				// we have a URL! Prepare for a HTTP request and the creation of
 				// a new attachment, do a check to see if we've already grabbed
 				// this image first though
 				if(!$this->hasDownloaded($image_id)){
 					$this->downloadImage($image_id,$parent);
-			   }
+				}
 			}
 	   }
 
@@ -76,11 +77,11 @@ if(!class_exists('ICIT_Image')){
 			if($q->have_posts()){
 				while($q->have_posts()){
 					$q->the_post();
-					$this->ID = $post->ID;
-					break;
+					$this->ID = get_the_ID();
+					wp_reset_postdata();
+					return true;
 				}
 				wp_reset_postdata();
-				return true;
 			}
 			return false;
 		}
@@ -128,8 +129,12 @@ if(!class_exists('ICIT_Image')){
 
 				// If error storing temporarily, unlink
 				if ( is_wp_error( $tmp ) ) {
+					
+					$this->error = $tmp->get_error_messages();
+					
 					@unlink($file_array['tmp_name']);
 					$file_array['tmp_name'] = '';
+					return 0;
 				}
 
 				// do the validation and storage stuff
@@ -137,7 +142,8 @@ if(!class_exists('ICIT_Image')){
 				// If error storing permanently, unlink
 				if ( is_wp_error($id) ) {
 					$this->ID = 0;
-					$this->error = $id;
+					$this->error = $id->get_error_messages();
+
 					@unlink($file_array['tmp_name']);
 					return $id;
 				}

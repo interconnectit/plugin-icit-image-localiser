@@ -46,8 +46,9 @@ if(!class_exists('ICIT_Feed_Images')){
 		 */
 		public function sideloadImages($content, $post_id){
 			$images = $this->img_finder($content);
-			if (is_array($images)) {
+			if (is_array($images) && !empty($images)) {
 				// images were found
+				$first = 0;
 				foreach($images as $image){
 					//$kitten = icit_kittens(array($image['width'],$image['height']));
 					//$kitty_url = $kitten->getURL();
@@ -55,21 +56,32 @@ if(!class_exists('ICIT_Feed_Images')){
 					
 						$i = new ICIT_Image($image['src'],$post_id);
 						if($i->is_valid()){
+							if($first == 0){
+//								error_log('first: '.print_r($image,true));
+								$this->set_featured_image($post_id,$i->ID);
+								$content = str_replace($image['tag'],'',$content);
+							}
 							$content = str_replace($image['src'],$i->getURL(),$content);
 						} else {
+							//error_log('invalid?'.print_r($i->error,true));
 							return false;
 						}
 					}
+					$first++;
 				}
 				return $content;
 			}
-			return false;
+			return $content;
 
+		}
+
+		public function set_featured_image($post_id,$attach_id){
+			add_post_meta($post_id, '_thumbnail_id', $attach_id);
 		}
 
 		function is_local_URL($url){
 			$site_url = get_site_url();
-			error_log('site_url: '.$site_url.' url: '.$url);
+			//error_log('site_url: '.$site_url.' url: '.$url);
 			if(strpos($url,$site_url) !== false){
 				return true;
 			}
@@ -111,9 +123,6 @@ if(!class_exists('ICIT_Feed_Images')){
 			// Find all image tags in $content
 			preg_match_all('!(<img\s+[^>]*?>)!si', $content, $matches);
 
-			error_log(print_r($matches,true));
-			error_log(print_r($content,true));
-
 			$index = 0;
 			foreach((array)$matches[0] as $image) {
 				$images[$index]['tag'] = $image;
@@ -121,6 +130,8 @@ if(!class_exists('ICIT_Feed_Images')){
 				// Find some important attributes
 				preg_match_all('!(src|alt|title|width|height)\s*?=\s*?([\'|"])([^\2]*?)\2!si', $image, $attributes);
 				unset($attributes[0], $attributes[2]);
+
+
 
 				foreach((array)$attributes[1] as $key => $attribute) {
 					$images[$index][$attribute] = trim($attributes[3][$key]);

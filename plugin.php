@@ -40,7 +40,7 @@ class ICIT_ImageLocaliser {
 	 */
 	function __construct() {
 
-		$this->donemeta = 'icit_localise_images';
+		$this->donemeta = 'icit_localised_state';
 
 		
 
@@ -86,6 +86,7 @@ class ICIT_ImageLocaliser {
 //			error_log(print_r($p,true).'###');
 			echo '<p>Failed to get some images for <a href="'.get_permalink($p->ID).'">'.$p->post_title.' ( '.$p->ID.' )</a></p>';
 			echo '<p>Aborting process</p>';
+			die();
 /*			if(!update_post_meta($p->ID,$this->donemeta,1)){
 				add_post_meta($p->ID, $this->donemeta, 1, true);
 			}*/
