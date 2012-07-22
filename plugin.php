@@ -92,7 +92,12 @@ class ICIT_ImageLocaliser {
 		$ret = $icit_feed_images->sideload_remote_images($p);
 		if(($ret == false)|| is_wp_error($ret) ){
 //			error_log(print_r($p,true).'###');
-			echo '<p class="failed_localisation">Failed to get some images for <a href="'.get_permalink($p->ID).'">'.$p->post_title.' ( '.$p->ID.' )</a>, message given was: '.implode(', ', $ret->get_error_messages()).'</p>';
+
+			$error = ' returned false';
+			if(is_wp_error($ret)){
+				$error = implode(', ', $ret->get_error_messages());
+			}
+			echo '<p class="failed_localisation">Failed to get some images for <a href="'.get_permalink($p->ID).'">'.$p->post_title.' ( '.$p->ID.' )</a>, message given was: '.$error.'</p>';
 //			echo '<p>Aborting process</p>';
 //			die();
 			if(!update_post_meta($p->ID,$m,1)){
@@ -129,7 +134,7 @@ class ICIT_ImageLocaliser {
 //
 		$sql = "select * from $wpdb->posts q where q.post_type = 'post' AND q.ID NOT in
 		 (SELECT p.ID FROM $wpdb->posts p join $wpdb->postmeta a on (a.post_id = p.ID) where a.meta_key = '".$m."' AND a.meta_value > 0 )
-		  order by q.post_date DESC LIMIT 15";
+		  order by q.post_date DESC LIMIT 5";
 		$myposts= $wpdb->get_results($sql);
 		$excludes = array();
 		if(!empty($myposts)){
@@ -153,7 +158,7 @@ class ICIT_ImageLocaliser {
 
 		$m = $this->donemeta;
 
-		$args = array('post_type' => 'any', 'meta_key' => $this->donemeta,'meta_value' => 1 );
+		$args = array('post_type' => 'any', 'meta_key' => $this->donemeta,'meta_value' => 1,'posts_per_page'=>5 );
 		$q = new WP_Query($args);
 		if($q->have_posts()){
 			while($q->have_posts()){
@@ -176,7 +181,7 @@ class ICIT_ImageLocaliser {
 //
 		$sql = "select * from $wpdb->posts q where q.post_type = 'post' AND q.ID NOT in
 		 (SELECT p.ID FROM $wpdb->posts p join $wpdb->postmeta a on (a.post_id = p.ID) where a.meta_key = '".$m."' AND a.meta_value > 0 )
-		  order by q.post_date DESC LIMIT 15";
+		  order by q.post_date DESC LIMIT 5";
 		$myposts= $wpdb->get_results($sql);
 		$excludes = array();
 		if(!empty($myposts)){
