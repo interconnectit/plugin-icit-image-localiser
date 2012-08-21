@@ -214,9 +214,9 @@ class ICIT_ImageLocaliser {
 			$clean = 0;
 			foreach($myposts as $p){
 				$ret = $this->localise_ajax_single_post_meta($p,'icit_featured_image');
-				if($ret == true){
+//				if($ret == true){
 					$clean++;
-				}
+//				}*/
 			}
 			if($clean == 0){
 				echo '<p>Aborting process</p><p>No posts could be processed, please edit and deal with those in the current batch that failed before continuing</p>';
