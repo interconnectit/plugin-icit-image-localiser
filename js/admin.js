@@ -1,84 +1,88 @@
 (function($) {
 	$(function() {
+		var buttons = [
+			{
+				id:			'do_localiser_script',
+				startup:	"starting image localisation",
+				singlerun:	false,
+				ajax_data:	{
+					action:	"localise_batch"
+				}
+			},
+			{
+				id:			'do_localiser_featured_script',
+				startup:	"starting featured image setup",
+				singlerun:	false,
+				ajax_data:	{
+					action:	"localise_featured_batch"
+				}
+			},
+			{
+				id:			'do_localiser_bad_script',
+				startup:	"starting image localisation on posts marked as bad",
+				singlerun:	true,
+				ajax_data:	{
+					action:	"localise_bad_batch"
+				}
+			},
+			{
+				id:			'do_localiser_featured_meta_script',
+				startup:	"Localising featured images from Post meta",
+				singlerun:	false,
+				ajax_data:	{
+					action:	"localise_featured_meta_batch"
+				}
+			}
+		];
 
-		var data = {
-			action: 'localise_batch'
-		};
-
-		var data_f = {
-			action: 'localise_featured_batch'
-		};
-
-		var data_b = {
-			action: 'localise_bad_batch'
-		};
+		function create_response_func(data){
+			return function(response){
+				if(do_response_single(response) === true){
+					var f = create_response_func(data);
+					$.post(ajaxurl, data, f);
+				}
+			};
+		}
 
 		function do_response(response){
-			if(response == '<p>no more posts</p>'){
-				$('#localise_entries').append('<p>finished</p>');
-			} else if (response.indexOf("Aborting process") != -1){
-				$('#localise_entries').append(response);
-				$('#localise_entries').append('<p>Problems were encountered!</p>');
-			} else {
-				$('#localise_entries').append(response);
-/*				$('#localise_entries').append('<p>Problems were encountered!</p>');
-			} else {
-				$('#localise_entries').append(response);*/
-//				alert('Got this from the server: ' + response);
+			if(do_response_single(response) === true){
 				$.post(ajaxurl, data, do_response);
 			}
 		}
 
-		function do_response_featured(response){
+		function do_response_single(response){
+			$('#localise_entries').append('<p>Processing Response</p>');
 			if(response == '<p>no more posts</p>'){
 				$('#localise_entries').append('<p>finished</p>');
+				return false;
 			} else if (response.indexOf("Aborting process") != -1){
 				$('#localise_entries').append(response);
 				$('#localise_entries').append('<p>Problems were encountered!</p>');
+				return false;
 			} else {
 				$('#localise_entries').append(response);
-//				alert('Got this from the server: ' + response);
-				$.post(ajaxurl, data_f, do_response_featured);
+				return true;
 			}
-			
 		}
 
-		function do_response_bad(response){
-			if(response == '<p>no more posts</p>'){
-				$('#localise_entries').append('<p>finished</p>');
-			} else if (response.indexOf("Aborting process") != -1){
-				$('#localise_entries').append(response);
-				$('#localise_entries').append('<p>Problems were encountered!</p>');
-			} else {
-				$('#localise_entries').append(response);
-				$('#localise_entries').append('<p>Single batch retrieved, re-run to grab the next</p>');
-//				alert('Got this from the server: ' + response);
-				//$.post(ajaxurl, data_b, do_response_bad);
-			}
-			
+		function setup_ajax_button(button){
+			$('#'+button['id']).click(function(e){
+				$('#localise_results').show();
+				$('#localise_entries').append('<p>'+button['startup']+'</p>');
+				var func = null;
+				if(button['singlerun'] === true){
+					func = do_response_single;
+				} else {
+					func = create_response_func(button['ajax_data']);
+				}
+				$.post(ajaxurl, button['ajax_data'], func);
+				return false;
+			});
 		}
-		// Place your administration-specific JavaScript here
-		$('#do_localiser_script').click(function(e){
-			$('#localise_results').show();
-			$('#localise_entries').append('<p>starting image localisation</p>');
-			$.post(ajaxurl, data, do_response);
-			
-			return false;
-		});
-		$('#do_localiser_bad_script').click(function(e){
-			$('#localise_results').show();
-			$('#localise_entries').append('<p>starting image localisation on posts marked as bad</p>');
-			$.post(ajaxurl, data_b, do_response_bad);
-			
-			return false;
-		});
-
-		$('#do_localiser_featured_script').click(function(e){
-			$('#localise_results').show();
-			$('#localise_entries').append('<p>starting featured image setup</p>');
-			$.post(ajaxurl, data_f, do_response_featured);
-			
-			return false;
-		});
+		for (var i = buttons.length - 1; i >= 0; i--) {
+			var button = buttons[i];
+			setup_ajax_button(button);
+		}
+//		do_localiser_featured_meta_script
 	});
 })(jQuery);

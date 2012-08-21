@@ -12,7 +12,7 @@ License:
   Copyright 2012 interconnect/it (tom@interconnectit.com)
 
   This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License, version 2, as 
+  it under the terms of the GNU General Public License, version 2, as
   published by the Free Software Foundation.
 
   This program is distributed in the hope that it will be useful,
@@ -23,18 +23,17 @@ License:
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-  
 */
 
-include('icit-plugin/icit-plugin.php');
-include('images.php');
+require_once('icit-plugin/icit-plugin.php');
+require_once('images.php');
 // TODO: rename this class to a proper name for your plugin
 class ICIT_ImageLocaliser {
-	 
+
 	/*--------------------------------------------*
 	 * Constructor
 	 *--------------------------------------------*/
-	
+
 	/**
 	 * Initializes the plugin by setting localization, filters, and administration functions.
 	 */
@@ -42,21 +41,18 @@ class ICIT_ImageLocaliser {
 
 		$this->donemeta = 'icit_localised_statet2';
 
-		
+		icit_register_plugin( 'ICIT_ImageLocaliser', __FILE__, $args = array( 'extra_content' => array(&$this, 'main_page'),'parent_slug'=>'tools.php') );
 
-		icit_register_plugin( 'ICIT_ImageLocaliser', __FILE__, $args = array( 'extra_content' => array(&$this, 'main_page')) );
-	
-		// TODO: replace "image-localiser-locale" with a unique value for your plugin
 		load_plugin_textdomain( 'image-localiser-locale', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
-		
+
 		// Register admin styles and scripts
 		add_action( 'admin_print_styles', array( &$this, 'register_admin_styles' ) );
 		add_action( 'admin_enqueue_scripts', array( &$this, 'register_admin_scripts' ) );
-	
+
 		// Register site styles and scripts
 		add_action( 'wp_print_styles', array( &$this, 'register_plugin_styles' ) );
 		add_action( 'wp_enqueue_scripts', array( &$this, 'register_plugin_scripts' ) );
-		
+
 		register_activation_hook( __FILE__, array( &$this, 'activate' ) );
 		register_deactivation_hook( __FILE__, array( &$this, 'deactivate' ) );
 
@@ -64,20 +60,7 @@ class ICIT_ImageLocaliser {
 		add_action('wp_ajax_localise_bad_batch', array(&$this,'localise_bad_batch_callback'));
 
 		add_action('wp_ajax_localise_featured_batch', array(&$this,'localise_featured_batch_callback'));
-		
-	    /*
-	     * TODO:
-	     * Define the custom functionality for your plugin. The first parameter of the
-	     * add_action/add_filter calls are the hooks into which your code should fire.
-	     *
-	     * The second parameter is the function name located within this class. See the stubs
-	     * later in the file.
-	     *
-	     * For more information: 
-	     * http://codex.wordpress.org/Plugin_API#Hooks.2C_Actions_and_Filters
-	     */
-	    //add_action( 'TODO', array( $this, 'action_method_name' ) );
-	    //add_filter( 'TODO', array( $this, 'filter_method_name' ) );
+		add_action('wp_ajax_localise_featured_meta_batch', array(&$this,'localise_featured_meta_batch_callback'));
 
 	} // end constructor
 
@@ -91,20 +74,16 @@ class ICIT_ImageLocaliser {
 		//error_log(print_r($p,true));
 		$ret = $icit_feed_images->sideload_remote_images($p);
 		if(($ret == false)|| is_wp_error($ret) ){
-//			error_log(print_r($p,true).'###');
 
 			$error = ' returned false';
 			if(is_wp_error($ret)){
 				$error = implode(', ', $ret->get_error_messages());
 			}
 			echo '<p class="failed_localisation">Failed to get some images for <a href="'.get_permalink($p->ID).'">'.$p->post_title.' ( '.$p->ID.' )</a>, message given was: '.$error.'</p>';
-//			echo '<p>Aborting process</p>';
-//			die();
 			if(!update_post_meta($p->ID,$m,1)){
 				add_post_meta($p->ID, $m, 1, true);
 			}
 		} else {
-			
 			$post_data = array();
 			$post_data['ID'] = $p->ID;
 			$post_data['post_content'] = $ret;
@@ -123,7 +102,22 @@ class ICIT_ImageLocaliser {
 		}
 	}
 
-	
+	function localise_ajax_single_post_meta($p,$meta){
+		$fimg = get_post_meta($p->ID, 'icit_featured_image',true);
+		$i = new ICIT_Image(home_url().'/'.$fimg,$p->ID);
+		if($i->is_valid()){
+			add_post_meta($p->ID, '_thumbnail_id', $i->ID);
+			echo '<p>Grabbed Featured Image from post meta on <a href="'.get_permalink($p->ID).'">'.$p->post_title.'</a></p>';
+		} else {
+			$error = ' returned false';
+			if(is_wp_error($i->error)){
+				$error = implode(', ', $i->error->get_error_messages());
+			}
+			echo '<p>An error occurred processing <a href="'.get_permalink($p->ID).'">'.$p->post_title.'</a>, '.$error.'</p>';
+		}
+		return;
+	}
+
 
 	function localise_batch_callback() {
 
@@ -131,7 +125,6 @@ class ICIT_ImageLocaliser {
 
 		$m = $this->donemeta;
 
-//
 		$sql = "select * from $wpdb->posts q where q.post_type = 'post' AND q.ID NOT in
 		 (SELECT p.ID FROM $wpdb->posts p join $wpdb->postmeta a on (a.post_id = p.ID) where a.meta_key = '".$m."' AND a.meta_value > 0 )
 		  order by q.post_date DESC LIMIT 5";
@@ -139,13 +132,10 @@ class ICIT_ImageLocaliser {
 		$excludes = array();
 		if(!empty($myposts)){
 			foreach($myposts as $p){
-//				$excludes[] = $p->ID;
 				$this->localise_ajax_single_post($p);
 			}
-//			error_log(print_r($excludes,true));
 			echo '<p>Batch complete</p>';
 		} else {
-//			error_log('nothing?');
 			echo '<p>no more posts</p>';
 		}
 		die();
@@ -170,7 +160,7 @@ class ICIT_ImageLocaliser {
 			echo '<p>no more posts</p>';
 		}
 		die(); // this is required to return a proper result
-		
+
 	}
 
 	public function localise_featured_batch_callback(){
@@ -178,7 +168,6 @@ class ICIT_ImageLocaliser {
 
 		$m = $this->donemeta.'_f';
 
-//
 		$sql = "select * from $wpdb->posts q where q.post_type = 'post' AND q.ID NOT in
 		 (SELECT p.ID FROM $wpdb->posts p join $wpdb->postmeta a on (a.post_id = p.ID) where a.meta_key = '".$m."' AND a.meta_value > 0 )
 		  order by q.post_date DESC LIMIT 5";
@@ -186,89 +175,111 @@ class ICIT_ImageLocaliser {
 		$excludes = array();
 		if(!empty($myposts)){
 			foreach($myposts as $p){
-//				$excludes[] = $p->ID;
 				$this->localise_ajax_single_post($p);
 			}
-//			error_log(print_r($excludes,true));
 			echo '<p>Batch complete</p>';
 		} else {
-//			error_log('nothing?');
 			echo '<p>no more posts</p>';
 		}
 		die();
 	}
-	
+
+	public function localise_featured_meta_batch_callback(){
+		global $post, $icit_feed_images,$wpdb;
+
+		$sql1 = "SELECT p.ID FROM $wpdb->posts p join $wpdb->postmeta a on (a.post_id = p.ID) where a.meta_key = 'icit_featured_image' AND a.meta_value <> ''";
+		$sql2 = "SELECT p.ID FROM $wpdb->posts p join $wpdb->postmeta a on (a.post_id = p.ID) where a.meta_key = '_thumbnail_id'";
+
+		$results= $wpdb->get_results($sql1);
+		$IDS1 = array();
+		foreach($results as $r){
+			$IDS1[] = $r->ID;
+		}
+
+		$results= $wpdb->get_results($sql2);
+		$IDS2 = array();
+		foreach($results as $r){
+			$IDS2[] = $r->ID;
+		}
+		unset($results);
+		$IDS1 = implode(',', (array)$IDS1);
+		$IDS2 = implode(',', (array)$IDS2);
+
+		$sql = "SELECT * from $wpdb->posts q where q.post_type = 'post' AND Q.ID in ($IDS1) AND Q.ID NOT in ($IDS2) order by q.post_date DESC LIMIT 5";
+		timer_start();
+		$myposts= $wpdb->get_results($sql);
+		error_log('db query takes: '.timer_stop());
+		$excludes = array();
+		if(!empty($myposts)){
+			foreach($myposts as $p){
+				$this->localise_ajax_single_post_meta($p,'icit_featured_image');
+			}
+			echo '<p>Batch complete</p>';
+		} else {
+			echo '<p>no more posts</p>';
+		}
+		die();
+	}
+
 	/**
 	 * Fired when the plugin is activated.
 	 *
-	 * @params	$network_wide	True if WPMU superadmin uses "Network Activate" action, false if WPMU is disabled or plugin is activated on an individual blog 
+	 * @params	$network_wide	True if WPMU superadmin uses "Network Activate" action, false if WPMU is disabled or plugin is activated on an individual blog
 	 */
 	function activate( $network_wide ) {
 		// TODO define activation functionality here
 	} // end activate
-	
+
 	/**
 	 * Fired when the plugin is deactivated.
 	 *
-	 * @params	$network_wide	True if WPMU superadmin uses "Network Activate" action, false if WPMU is disabled or plugin is activated on an individual blog 
+	 * @params	$network_wide	True if WPMU superadmin uses "Network Activate" action, false if WPMU is disabled or plugin is activated on an individual blog
 	 */
 	function deactivate( $network_wide ) {
-		// TODO define deactivation functionality here		
+		// TODO define deactivation functionality here
 	} // end deactivate
-	
+
 	/**
 	 * Registers and enqueues admin-specific styles.
 	 */
 	public function register_admin_styles() {
-	
-		// TODO change 'image-localiser' to the name of your plugin
 		wp_register_style( 'image-localiser-admin-styles', plugins_url( 'icit-image-localiser/css/admin.css' ) );
 		wp_enqueue_style( 'image-localiser-admin-styles' );
-	
 	} // end register_admin_styles
 
 	/**
 	 * Registers and enqueues admin-specific JavaScript.
-	 */	
+	 */
 	public function register_admin_scripts() {
-	
-		// TODO change 'image-localiser' to the name of your plugin
 		wp_register_script( 'image-localiser-admin-script', plugins_url( 'icit-image-localiser/js/admin.js' ) );
 		wp_enqueue_script( 'image-localiser-admin-script' );
-	
 	} // end register_admin_scripts
-	
+
 	/**
 	 * Registers and enqueues plugin-specific styles.
 	 */
 	public function register_plugin_styles() {
-	
-		// TODO change 'image-localiser' to the name of your plugin
 		wp_register_style( 'image-localiser-plugin-styles', plugins_url( 'icit-image-localiser/css/display.css' ) );
 		wp_enqueue_style( 'image-localiser-plugin-styles' );
-	
 	} // end register_plugin_styles
-	
+
 	/**
 	 * Registers and enqueues plugin-specific scripts.
 	 */
 	public function register_plugin_scripts() {
-	
-		// TODO change 'image-localiser' to the name of your plugin
 		wp_register_script( 'image-localiser-plugin-script', plugins_url( 'icit-image-localiser/js/display.js' ) );
 		wp_enqueue_script( 'image-localiser-plugin-script' );
-	
 	} // end register_plugin_scripts
 
 
 	public function main_page($plugin,$p){
 		include('views/admin.php');
 	}
-	
+
 	/*--------------------------------------------*
 	 * Core Functions
 	 *---------------------------------------------*/
-	
+
 	/**
  	 * Note:  Actions are points in the execution of a page or process
 	 *        lifecycle that WordPress fires.
@@ -280,7 +291,7 @@ class ICIT_ImageLocaliser {
 	function action_method_name() {
     	// TODO define your action method here
 	} // end action_method_name
-	
+
 	/**
 	 * Note:  Filters are points of execution in which WordPress modifies data
 	 *        before saving it or sending it to the browser.
@@ -292,7 +303,7 @@ class ICIT_ImageLocaliser {
 	function filter_method_name() {
 	    // TODO define your filter method here
 	} // end filter_method_name
-  
+
 } // end class
 
 // TODO: update the instantiation call of your plugin to the name given at the class definition
