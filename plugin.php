@@ -207,7 +207,7 @@ class ICIT_ImageLocaliser {
 		$IDS1 = implode(',', (array)$IDS1);
 		$IDS2 = implode(',', (array)$IDS2);
 
-		$sql = "SELECT * from $wpdb->posts q where q.post_type = 'post' AND Q.ID in ($IDS1) AND Q.ID NOT in ($IDS2) order by q.post_date DESC LIMIT 15";
+		$sql = "SELECT * from $wpdb->posts q where q.post_type = 'post' AND q.ID in ($IDS1) AND q.ID NOT in ($IDS2) order by q.post_date DESC LIMIT 15";
 		
 		$myposts= $wpdb->get_results($sql);
 		error_log('db querys takes: '.timer_stop());
