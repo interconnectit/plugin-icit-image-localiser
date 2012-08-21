@@ -108,14 +108,15 @@ class ICIT_ImageLocaliser {
 		if($i->is_valid()){
 			add_post_meta($p->ID, '_thumbnail_id', $i->ID);
 			echo '<p>Grabbed Featured Image from post meta on <a href="'.get_permalink($p->ID).'">'.$p->post_title.'</a></p>';
+			return true;
 		} else {
 			$error = ' returned false';
 			if(is_wp_error($i->error)){
 				$error = implode(', ', $i->error->get_error_messages());
 			}
 			echo '<p>An error occurred processing <a href="'.get_permalink($p->ID).'">'.$p->post_title.'</a>, '.$error.'</p>';
+			return $i->error;
 		}
-		return;
 	}
 
 
@@ -187,6 +188,7 @@ class ICIT_ImageLocaliser {
 	public function localise_featured_meta_batch_callback(){
 		global $post, $icit_feed_images,$wpdb;
 
+		timer_start();
 		$sql1 = "SELECT p.ID FROM $wpdb->posts p join $wpdb->postmeta a on (a.post_id = p.ID) where a.meta_key = 'icit_featured_image' AND a.meta_value <> ''";
 		$sql2 = "SELECT p.ID FROM $wpdb->posts p join $wpdb->postmeta a on (a.post_id = p.ID) where a.meta_key = '_thumbnail_id'";
 
@@ -205,16 +207,24 @@ class ICIT_ImageLocaliser {
 		$IDS1 = implode(',', (array)$IDS1);
 		$IDS2 = implode(',', (array)$IDS2);
 
-		$sql = "SELECT * from $wpdb->posts q where q.post_type = 'post' AND Q.ID in ($IDS1) AND Q.ID NOT in ($IDS2) order by q.post_date DESC LIMIT 5";
-		timer_start();
+		$sql = "SELECT * from $wpdb->posts q where q.post_type = 'post' AND Q.ID in ($IDS1) AND Q.ID NOT in ($IDS2) order by q.post_date DESC LIMIT 15";
+
 		$myposts= $wpdb->get_results($sql);
-		error_log('db query takes: '.timer_stop());
+		error_log('db querys takes: '.timer_stop());
 		$excludes = array();
 		if(!empty($myposts)){
+			$clean = 0;
 			foreach($myposts as $p){
-				$this->localise_ajax_single_post_meta($p,'icit_featured_image');
+				$ret = $this->localise_ajax_single_post_meta($p,'icit_featured_image');
+				if(!is_wp_error($ret)){
+					$clean++;
+				}
 			}
-			echo '<p>Batch complete</p>';
+			if($clean == 0){
+				echo '<p>Aborting process</p><p>No posts could be processed, please edit and deal with those in the current batch that failed before continuing</p>';
+			} else {
+				echo '<p>Batch complete</p>';
+			}
 		} else {
 			echo '<p>no more posts</p>';
 		}
