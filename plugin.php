@@ -213,8 +213,15 @@ class ICIT_ImageLocaliser {
 		error_log('db querys takes: '.timer_stop());
 		$excludes = array();
 		if(!empty($myposts)){
+			$postsprocessed = 0;
 			foreach($myposts as $p){
-				$this->localise_ajax_single_post_meta($p,'icit_featured_image');
+				$r = $this->localise_ajax_single_post_meta($p,'icit_featured_image');
+				if($r == true){
+					$postsprocessed++;
+				}
+			}
+			if($postsprocessed == 0){
+				echo '<p>No posts were processed in this batch, they all had issues. Please fix these issues and rerun the process</p><p>Aborting process</p>';
 			}
 			echo '<p>Batch complete</p>';
 		} else {
