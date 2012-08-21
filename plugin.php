@@ -110,6 +110,7 @@ class ICIT_ImageLocaliser {
 			echo '<p>Grabbed Featured Image from post meta on <a href="'.get_permalink($p->ID).'">'.$p->post_title.'</a></p>';
 			return true;
 		} else {
+			add_post_meta($p->ID, '_icit-localiser-featured-meta-bad',true,true);
 			$error = ' returned false';
 			if(is_wp_error($i->error)){
 				$error = implode(', ', $i->error->get_error_messages());
@@ -190,7 +191,7 @@ class ICIT_ImageLocaliser {
 
 		timer_start();
 		$sql1 = "SELECT p.ID FROM $wpdb->posts p join $wpdb->postmeta a on (a.post_id = p.ID) where a.meta_key = 'icit_featured_image' AND a.meta_value <> ''";
-		$sql2 = "SELECT p.ID FROM $wpdb->posts p join $wpdb->postmeta a on (a.post_id = p.ID) where a.meta_key = '_thumbnail_id'";
+		$sql2 = "SELECT p.ID FROM $wpdb->posts p join $wpdb->postmeta a on (a.post_id = p.ID) where (a.meta_key = '_thumbnail_id') OR (a.meta_key = '_icit-localiser-featured-meta-bad')";
 
 		$results= $wpdb->get_results($sql1);
 		$IDS1 = array();
@@ -208,21 +209,21 @@ class ICIT_ImageLocaliser {
 		$IDS2 = implode(',', (array)$IDS2);
 
 		$sql = "SELECT * from $wpdb->posts q where q.post_type = 'post' AND q.ID in ($IDS1) AND q.ID NOT in ($IDS2) order by q.post_date DESC LIMIT 15";
-		
+
 		$myposts= $wpdb->get_results($sql);
 		error_log('db querys takes: '.timer_stop());
 		$excludes = array();
 		if(!empty($myposts)){
-			$postsprocessed = 0;
+			//$postsprocessed = 0;
 			foreach($myposts as $p){
 				$r = $this->localise_ajax_single_post_meta($p,'icit_featured_image');
-				if($r == true){
-					$postsprocessed++;
-				}
+				//if($r == true){
+				//	$postsprocessed++;
+				//}
 			}
-			if($postsprocessed == 0){
-				echo '<p>No posts were processed in this batch, they all had issues. Please fix these issues and rerun the process</p><p>Aborting process</p>';
-			}
+			//if($postsprocessed == 0){
+			//	echo '<p>No posts were processed in this batch, they all had issues. Please fix these issues and rerun the process</p><p>Aborting process</p>';
+			//}
 			echo '<p>Batch complete</p>';
 		} else {
 			echo '<p>no more posts</p>';
