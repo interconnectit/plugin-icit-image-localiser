@@ -27,7 +27,7 @@ License:
 
 require_once('icit-plugin/icit-plugin.php');
 require_once('images.php');
-// TODO: rename this class to a proper name for your plugin
+
 class ICIT_ImageLocaliser {
 
 	/*--------------------------------------------*
@@ -127,8 +127,8 @@ class ICIT_ImageLocaliser {
 
 		$m = $this->donemeta;
 
-		$sql = "select * from $wpdb->posts q where q.post_type = 'post' AND q.ID NOT in
-		 (SELECT p.ID FROM $wpdb->posts p join $wpdb->postmeta a on (a.post_id = p.ID) where a.meta_key = '".$m."' AND a.meta_value > 0 )
+		$sql = "SELECT * from $wpdb->posts q where q.post_type = 'post' AND q.ID NOT in
+		 (SELECT p.ID FROM $wpdb->posts p join $wpdb->postmeta a on (a.post_id = p.ID) where a.meta_key = '$m' AND a.meta_value > 0 )
 		  order by q.post_date DESC LIMIT 5";
 		$myposts= $wpdb->get_results($sql);
 		$excludes = array();
@@ -170,8 +170,8 @@ class ICIT_ImageLocaliser {
 
 		$m = $this->donemeta.'_f';
 
-		$sql = "select * from $wpdb->posts q where q.post_type = 'post' AND q.ID NOT in
-		 (SELECT p.ID FROM $wpdb->posts p join $wpdb->postmeta a on (a.post_id = p.ID) where a.meta_key = '".$m."' AND a.meta_value > 0 )
+		$sql = "SELECT * from $wpdb->posts q where q.post_type = 'post' AND q.ID NOT in
+		 (SELECT p.ID FROM $wpdb->posts p join $wpdb->postmeta a on (a.post_id = p.ID) where a.meta_key = '$m' AND a.meta_value > 0 )
 		  order by q.post_date DESC LIMIT 5";
 		$myposts= $wpdb->get_results($sql);
 		$excludes = array();
@@ -208,7 +208,7 @@ class ICIT_ImageLocaliser {
 		$IDS1 = implode(',', (array)$IDS1);
 		$IDS2 = implode(',', (array)$IDS2);
 
-		$sql = "SELECT * from $wpdb->posts q where q.post_type = 'post' AND q.ID in ($IDS1) AND q.ID NOT in ($IDS2) order by q.post_date DESC LIMIT 15";
+		$sql = "SELECT * from $wpdb->posts q where q.ID in ($IDS1) AND q.ID NOT in ($IDS2) order by q.post_date DESC LIMIT 15";
 
 		$myposts= $wpdb->get_results($sql);
 		error_log('db querys takes: '.timer_stop());
