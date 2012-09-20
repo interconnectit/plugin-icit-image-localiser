@@ -68,14 +68,15 @@
 		function setup_ajax_button(button){
 			$('#'+button['id']).click(function(e){
 				$('#localise_results').show();
-				$('#localise_entries').append('<p>'+button['startup']+'</p>');
+				$('#localise_entries').append('<p>'+button.startup+'</p>');
 				var func = null;
-				if(button['singlerun'] === true){
+				if(button.singlerun === true){
 					func = do_response_single;
 				} else {
 					func = create_response_func(button['ajax_data']);
 				}
-				$.post(ajaxurl, button['ajax_data'], func);
+				button.ajax_data.from = $( '#from_date' ).val();
+				$.post(ajaxurl, button.ajax_data, func);
 				return false;
 			});
 		}

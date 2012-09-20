@@ -53,12 +53,12 @@ if(!class_exists('ICIT_Feed_Images')){
 					//$kitten = icit_kittens(array($image['width'],$image['height']));
 					//$kitty_url = $kitten->getURL();
 					//if(!$this->is_local_URL($image['src'])){
-					
+
 						$i = new ICIT_Image($image['src'],$post_id);
 						if($i->is_valid()){
 							if($_POST['action'] =='localise_featured_batch'){
 								if($first == 0){
-								
+
 	//								error_log('first: '.print_r($image,true));
 									$this->set_featured_image($post_id,$i->ID);
 									$content = str_replace($image['tag'],'',$content);
@@ -130,6 +130,7 @@ if(!class_exists('ICIT_Feed_Images')){
 			preg_match_all('!(<img\s+[^>]*?>)!si', $content, $matches);
 
 			$index = 0;
+			$images = array();
 			foreach((array)$matches[0] as $image) {
 				$images[$index]['tag'] = $image;
 
@@ -145,7 +146,7 @@ if(!class_exists('ICIT_Feed_Images')){
 				$index++;
 			}
 
-			if (count($images)) {
+			if ( count($images) ) {
 				return $images;
 			} else {
 				return false;

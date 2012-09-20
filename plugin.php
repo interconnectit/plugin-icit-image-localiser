@@ -121,16 +121,32 @@ class ICIT_ImageLocaliser {
 	}
 
 
+	function get_date_range() {
+
+		if ( isset( $_POST[ 'from' ] ) && preg_match( "/\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}:\d{2}/", $_POST[ 'from' ] ) )
+			return $_POST[ 'from' ];
+
+		return false;
+	}
+
+
 	function localise_batch_callback() {
 
 		global $post, $icit_feed_images,$wpdb;
 
 		$m = $this->donemeta;
 
-		$sql = "SELECT * from $wpdb->posts q where q.post_type = 'post' AND q.ID NOT in
-		 (SELECT p.ID FROM $wpdb->posts p join $wpdb->postmeta a on (a.post_id = p.ID) where a.meta_key = '$m' AND a.meta_value > 0 )
-		  order by q.post_date DESC LIMIT 5";
-		$myposts= $wpdb->get_results($sql);
+		$date = $this->get_date_range();
+
+		$where = "WHERE q.post_type = 'post' AND q.ID NOT IN
+		 (SELECT p.ID FROM $wpdb->posts p JOIN $wpdb->postmeta a ON (a.post_id = p.ID) WHERE a.meta_key = '$m' AND a.meta_value > 0 )";
+
+		if ( $date )
+			$where .= " AND q.post_date >= '$date'";
+
+		$sql = "SELECT * from $wpdb->posts q $where
+		  ORDER BY q.post_date DESC LIMIT 5";
+		$myposts = $wpdb->get_results($sql);
 		$excludes = array();
 		if(!empty($myposts)){
 			foreach($myposts as $p){
