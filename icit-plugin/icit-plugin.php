@@ -9,11 +9,18 @@
  *
  * v0.2
  *
+ * TODO:
+ * Add donate URL support (Amazon? Paypal? Flattr?)
+ * API key check
+ * Fancier settings UI (tabs to go through settings sections)
+ * Magic boats
+ * Sub module register/unregister/enable/disable system
+ *
  */
 
 if ( ! class_exists( 'icit_plugins' ) ) {
 
-	add_action( 'init', array( 'icit_plugins', 'instance' ), 8 );
+	add_action( 'plugins_loaded', array( 'icit_plugins', 'instance' ), 1 );
 
 	class icit_plugins {
 
@@ -36,13 +43,13 @@ if ( ! class_exists( 'icit_plugins' ) ) {
 		function __construct() {
 
 			// create plugin page
-			add_action( 'admin_menu', array( $this, 'plugin_pages' ), 99999999 );
+			add_action( 'admin_menu', array( $this, 'plugin_pages' ), 100 );
 
 			// icit plugin page CSS
 			add_action( 'admin_print_styles', array( $this, 'css' ) );
 
 			// handle save after pages are prepped and settings registered
-			add_action( 'admin_init', array( $this, 'save' ), 99999999 );
+			add_action( 'admin_init', array( $this, 'save' ), 100 );
 
 		}
 
@@ -68,6 +75,8 @@ if ( ! class_exists( 'icit_plugins' ) ) {
 				'menu_slug' 	=> $id,
 				'capability' 	=> 'manage_options',
 				'parent_slug' 	=> 'options-general.php',
+				'icon_url' 		=> '',
+				'position' 		=> 110, // after settings
 				'extra_content' => '',
 				'file' 			=> $plugin_file
 			) );
@@ -91,8 +100,13 @@ if ( ! class_exists( 'icit_plugins' ) ) {
 				if ( isset( $_REQUEST[ 'page' ] ) && $_REQUEST[ 'page' ] == $plugin[ 'menu_slug' ] )
 					$this->plugin = $id;
 
+				var_dump( $plugin ); die;
+
 				// create page
-				add_submenu_page( $plugin[ 'parent_slug' ], $plugin[ 'page_title' ], $plugin[ 'menu_title' ], $plugin[ 'capability' ], $plugin[ 'menu_slug' ], array( $this, 'build_page' ) );
+				if ( $plugin[ 'parent_slug' ] )
+					add_submenu_page( $plugin[ 'parent_slug' ], $plugin[ 'page_title' ], $plugin[ 'menu_title' ], $plugin[ 'capability' ], $plugin[ 'menu_slug' ], array( $this, 'build_page' ) );
+				else
+					add_menu_page( $plugin[ 'page_title' ], $plugin[ 'menu_title' ], $plugin[ 'capability' ], $plugin[ 'menu_slug' ], array( $this, 'build_page' ), $plugin[ 'icon_url' ], $plugin[ 'position' ] );
 
 			}
 
@@ -107,6 +121,9 @@ if ( ! class_exists( 'icit_plugins' ) ) {
 
 			$plugin = $this->plugins[ $id ];
 			$plugin_data = get_plugin_data( $plugin[ 'file' ] );
+
+			if ( ! current_user_can( $plugin[ 'capability' ] ) )
+				wp_die( __( 'You do not have permission to use this page.' ) );
 
 			echo '
 		<div class="wrap icit-plugin">';
@@ -149,7 +166,7 @@ if ( ! class_exists( 'icit_plugins' ) ) {
 
 			// custom callback content
 			if ( is_callable( $plugin[ 'extra_content' ] ) )
-				call_user_func_array( $plugin[ 'extra_content' ], array($id, $plugin) );
+				call_user_func_array( $plugin[ 'extra_content' ], $id, $plugin );
 
 			// normal context metaboxes
 			do_meta_boxes( $id, 'normal', $plugin );
