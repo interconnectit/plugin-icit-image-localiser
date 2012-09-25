@@ -7,7 +7,7 @@
  * - Use add_meta_box() or settings API to extend the page, page id is the file path
  *
  *
- * v0.2
+ * v0.3
  *
  * TODO:
  * Add donate URL support (Amazon? Paypal? Flattr?)
@@ -99,8 +99,6 @@ if ( ! class_exists( 'icit_plugins' ) ) {
 				// choose the current page if any
 				if ( isset( $_REQUEST[ 'page' ] ) && $_REQUEST[ 'page' ] == $plugin[ 'menu_slug' ] )
 					$this->plugin = $id;
-
-				var_dump( $plugin ); die;
 
 				// create page
 				if ( $plugin[ 'parent_slug' ] )
