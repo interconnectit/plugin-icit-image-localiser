@@ -166,9 +166,6 @@ if ( ! class_exists( 'icit_plugins' ) ) {
 			if ( is_callable( $plugin[ 'extra_content' ] ) )
 				call_user_func_array( $plugin[ 'extra_content' ], $id, $plugin );
 
-			// normal context metaboxes
-			do_meta_boxes( $id, 'normal', $plugin );
-
 			// API key field
 			$this->api();
 
@@ -193,6 +190,12 @@ if ( ! class_exists( 'icit_plugins' ) ) {
 				echo ob_get_clean();
 
 			}
+
+			// normal context metaboxes
+			do_meta_boxes( $id, 'normal', $plugin );
+
+			// advanced context metaboxes
+			do_meta_boxes( $id, 'advanced', $plugin );
 
 			echo '
 					</div>
