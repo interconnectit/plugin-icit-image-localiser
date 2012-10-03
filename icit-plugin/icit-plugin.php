@@ -167,7 +167,7 @@ if ( ! class_exists( 'icit_plugins' ) ) {
 
 			// custom callback content
 			if ( is_callable( $plugin[ 'extra_content' ] ) )
-				call_user_func_array( $plugin[ 'extra_content' ], $id, $plugin );
+				call_user_func_array( $plugin[ 'extra_content' ], array( 'plugin_id' => $id, 'plugin_data' => $plugin ) );
 
 			// API key field
 			$this->api();

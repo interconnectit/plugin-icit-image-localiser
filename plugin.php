@@ -298,7 +298,7 @@ class ICIT_ImageLocaliser {
 	} // end register_plugin_scripts
 
 
-	public function main_page($plugin,$p){
+	public function main_page($plugin){
 		include('views/admin.php');
 	}
 
