@@ -65,18 +65,21 @@ if ( ! class_exists( 'icit_plugins' ) ) {
 
 			$plugin_data = get_plugin_data( $plugin_file );
 
-			$args = wp_parse_args( $args, array(
-				'ID' 			=> $id,
-				'page_title' 	=> $plugin_data[ 'Name' ],
-				'menu_title' 	=> $plugin_data[ 'Name' ],
-				'menu_slug' 	=> $id,
-				'capability' 	=> 'manage_options',
-				'parent_slug' 	=> 'options-general.php',
-				'icon_url' 		=> '',
-				'position' 		=> 110, // after settings
-				'extra_content' => '',
-				'file' 			=> $plugin_file
-			) );
+			$args = wp_parse_args(
+				$args,
+				array(
+					'ID' 			=> $id,
+					'page_title' 	=> $plugin_data[ 'Name' ],
+					'menu_title' 	=> $plugin_data[ 'Name' ],
+					'menu_slug' 	=> $id,
+					'capability' 	=> 'manage_options',
+					'parent_slug' 	=> 'options-general.php',
+					'icon_url' 		=> '',
+					'position' 		=> 110, // after settings
+					'extra_content' => '',
+					'file' 			=> $plugin_file
+				)
+			);
 
 			// add plugin to list
 			$this->plugins[ $id ] = $args;
@@ -166,8 +169,12 @@ if ( ! class_exists( 'icit_plugins' ) ) {
 					<div class="column-inner">';
 
 			// custom callback content
-			if ( is_callable( $plugin[ 'extra_content' ] ) )
-				call_user_func_array( $plugin[ 'extra_content' ], array( 'plugin_id' => $id, 'plugin_data' => $plugin ) );
+			if ( is_callable( $plugin[ 'extra_content' ] ) ) {
+				call_user_func_array(
+					$plugin[ 'extra_content' ],
+					array( 'plugin_id' => $id, 'plugin_data' => $plugin )
+				);
+			}
 
 			// API key field
 			$this->api();
