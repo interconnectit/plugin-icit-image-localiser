@@ -9,12 +9,14 @@
 *
 * @return ICIT_Image    An image object of a kitten
 */
-function icit_kittens($size){
-   if(is_array($size)){
-	   return new ICIT_Image('http://placekitten.com/g/'.$size[0].'/'.$size[1]);
-   }
+if ( !function_exists( 'icit_kittens' ) ) {
+	function icit_kittens($size){
+	   if(is_array($size)){
+		   return new ICIT_Image('http://placekitten.com/g/'.$size[0].'/'.$size[1]);
+	   }
+	}
+	//add_filter( 'attachment_fields_to_edit', 'metametameta', 10, 2 );
 }
-//add_filter( 'attachment_fields_to_edit', 'metametameta', 10, 2 );
 
 function metametameta( $form_fields, $post ){
 	$metadata = get_metadata('post',$post->ID);
