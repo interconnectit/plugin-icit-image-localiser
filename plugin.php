@@ -269,7 +269,7 @@ class ICIT_ImageLocaliser {
 	 * Registers and enqueues admin-specific styles.
 	 */
 	public function register_admin_styles() {
-		wp_register_style( 'image-localiser-admin-styles', plugins_url( 'icit-image-localiser/css/admin.css' ) );
+		wp_register_style( 'image-localiser-admin-styles', plugins_url( 'css/admin.css', __FILE__ ) );
 		wp_enqueue_style( 'image-localiser-admin-styles' );
 	} // end register_admin_styles
 
@@ -277,7 +277,7 @@ class ICIT_ImageLocaliser {
 	 * Registers and enqueues admin-specific JavaScript.
 	 */
 	public function register_admin_scripts() {
-		wp_register_script( 'image-localiser-admin-script', plugins_url( 'icit-image-localiser/js/admin.js' ) );
+		wp_register_script( 'image-localiser-admin-script', plugins_url( 'js/admin.js', __FILE__ ) );
 		wp_enqueue_script( 'image-localiser-admin-script' );
 	} // end register_admin_scripts
 
@@ -285,7 +285,7 @@ class ICIT_ImageLocaliser {
 	 * Registers and enqueues plugin-specific styles.
 	 */
 	public function register_plugin_styles() {
-		wp_register_style( 'image-localiser-plugin-styles', plugins_url( 'icit-image-localiser/css/display.css' ) );
+		wp_register_style( 'image-localiser-plugin-styles', plugins_url( 'css/display.css', __FILE__ ) );
 		wp_enqueue_style( 'image-localiser-plugin-styles' );
 	} // end register_plugin_styles
 
@@ -293,7 +293,7 @@ class ICIT_ImageLocaliser {
 	 * Registers and enqueues plugin-specific scripts.
 	 */
 	public function register_plugin_scripts() {
-		wp_register_script( 'image-localiser-plugin-script', plugins_url( 'icit-image-localiser/js/display.js' ) );
+		wp_register_script( 'image-localiser-plugin-script', plugins_url( 'js/display.js', __FILE__ ) );
 		wp_enqueue_script( 'image-localiser-plugin-script' );
 	} // end register_plugin_scripts
 
